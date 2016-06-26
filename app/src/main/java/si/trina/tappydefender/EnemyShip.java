@@ -46,14 +46,31 @@ public class EnemyShip {
     // constructors
 
     public EnemyShip(Context context, Point screenSize) {
-        bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.enemy);
+        Random generator = new Random();
+        int enemyNum = generator.nextInt(4);
+        switch (enemyNum) {
+            case 0:
+                bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.enemy);
+                break;
+            case 1:
+                bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.enemy1);
+                break;
+            case 2:
+                bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.enemy2);
+                break;
+            default:
+                bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.enemy3);
+                break;
+        }
+
+        scaleBitmap(screenSize.x);
+
         minX = 0;
         minY = 0;
         maxX = screenSize.x;
         maxY = screenSize.y - bitmap.getHeight();
 
         // random speed
-        Random generator = new Random();
         speed = generator.nextInt(6) + 10;
 
         // random y position
@@ -62,7 +79,14 @@ public class EnemyShip {
         hitbox = new Rect(x, y, bitmap.getWidth(), bitmap.getHeight());
     }
 
-    //
+    // scale enemies according to resolution
+    public void scaleBitmap(int x) {
+        if (x < 1000) {
+            bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/3, bitmap.getHeight()/3, false);
+        } else if (x < 1200) {
+            bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/2, bitmap.getHeight()/2, false);
+        }
+    }
 
     public void update(int playerSpeed) {
         // move left

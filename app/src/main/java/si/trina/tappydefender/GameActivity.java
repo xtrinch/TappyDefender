@@ -8,6 +8,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.View;
 
 public class GameActivity extends Activity {
@@ -38,6 +39,15 @@ public class GameActivity extends Activity {
     protected void onResume() {
         super.onResume();
         gameView.resume();
+    }
+
+    // If the player hits the back button, quit the app
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            finish();
+            return true;
+        }
+        return false;
     }
 
 }

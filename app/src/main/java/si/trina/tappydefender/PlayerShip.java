@@ -13,7 +13,7 @@ public class PlayerShip {
     private final int MIN_SPEED = 1;
     private final int MAX_SPEED = 20;
     private final int GRAVITY = -12;
-    private final int NUM_SHIELDS = 10;
+    private final int NUM_SHIELDS = 7;
 
     private Bitmap bitmap;
     private boolean boosting;

@@ -25,10 +25,10 @@ import java.util.ArrayList;
  */
 public class TDView extends SurfaceView implements Runnable {
 
-    private final int NUM_ENEMY_SHIPS = 5;
     private final int NUM_SPECS = 80;
-    private final int MAX_DISTANCE_REMAINING = 1000; // 10km
+    private final int MAX_DISTANCE_REMAINING = 10000; // 10km
     private final int REFRESH_RATE = 17;
+    private int NUM_ENEMY_SHIPS = 5;
 
     // screen size
     private Point screenSize;
@@ -105,12 +105,18 @@ public class TDView extends SurfaceView implements Runnable {
         ourHolder = getHolder();
         paint = new Paint();
 
+        if (screenSize.x < 1000) {
+            NUM_ENEMY_SHIPS = 3;
+        } else if (screenSize.x < 1200) {
+            NUM_ENEMY_SHIPS = 4;
+        }
+
         startGame();
     }
 
     private void startGame() {
         gameOver = false;
-        
+
         // reset time and distance
         distanceRemaining = MAX_DISTANCE_REMAINING;
         timeTaken = 0;
@@ -222,8 +228,8 @@ public class TDView extends SurfaceView implements Runnable {
 
             paint.setColor(Color.argb(255, 255, 255, 255));
 
-            for (SpaceDust spec:spaceDust) {
-                canvas.drawPoint(spec.getX(), spec.getY(), paint);
+            for (int i=0; i<spaceDust.size(); i++) {
+                canvas.drawPoint(spaceDust.get(i).getX(), spaceDust.get(i).getY(), paint);
             }
 
             canvas.drawBitmap(
