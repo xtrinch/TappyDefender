@@ -1,6 +1,7 @@
 package si.trina.tappydefender;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Canvas;
@@ -26,7 +27,7 @@ public class TDView extends SurfaceView implements Runnable {
 
     private final int NUM_ENEMY_SHIPS = 5;
     private final int NUM_SPECS = 80;
-    private final int MAX_DISTANCE_REMAINING = 10000; // 10km
+    private final int MAX_DISTANCE_REMAINING = 1000; // 10km
     private final int REFRESH_RATE = 17;
 
     // screen size
@@ -63,6 +64,9 @@ public class TDView extends SurfaceView implements Runnable {
     int destroyed = -1;
     int win = -1;
 
+    private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
+
     public TDView(Context context, Point screenSize) {
         super(context);
         this.context = context;
@@ -88,21 +92,34 @@ public class TDView extends SurfaceView implements Runnable {
             Log.e("error", "Failed to load sound files with exception:" + e.toString());
         }
 
+        // get a reference to high scores file, create if nonexistant
+        prefs = context.getSharedPreferences("HighScores", context.MODE_PRIVATE);
+        editor = prefs.edit();
+
+        // load fastest time from file entry labeled "fastestTime"
+        fastestTime = prefs.getLong("fastestTime", 1000000);
+
         this.screenSize = screenSize;
 
         // Initialize our drawing objects
         ourHolder = getHolder();
         paint = new Paint();
-        fastestTime = 0;
 
         startGame();
     }
 
     private void startGame() {
+        gameOver = false;
+        
+        // reset time and distance
+        distanceRemaining = MAX_DISTANCE_REMAINING;
+        timeTaken = 0;
+
+        // get start time
+        timeStarted = System.currentTimeMillis();
+
         // play start game sound
         soundPool.play(start, 1, 1, 0, 0, 1);
-
-        gameOver = false;
 
         // Initialize our player ship
         player = new PlayerShip(context, screenSize);
@@ -118,13 +135,6 @@ public class TDView extends SurfaceView implements Runnable {
         for (int i=0; i<NUM_SPECS; i++) {
             spaceDust.add(new SpaceDust(context, screenSize));
         }
-
-        // reset time and distance
-        distanceRemaining = MAX_DISTANCE_REMAINING;
-        timeTaken = 0;
-
-        // get start time
-        timeStarted = System.currentTimeMillis();
     }
 
     public void pause() {
@@ -190,12 +200,17 @@ public class TDView extends SurfaceView implements Runnable {
 
         // player has finished the game
         if (distanceRemaining < 0) {
-            if (timeTaken < fastestTime || fastestTime == 0) {
+            gameOver = true;
+            soundPool.play(win, 1, 1, 0, 0, 1);
+
+            if (timeTaken < fastestTime) {
+                // save high scores
+                editor.putLong("fastestTime", timeTaken);
+                editor.apply();
                 fastestTime = timeTaken;
             }
 
             distanceRemaining = 0;
-            gameOver = true;
         }
     }
 
@@ -216,11 +231,11 @@ public class TDView extends SurfaceView implements Runnable {
                     player.getX(),
                     player.getY(),
                     paint);
-            for (EnemyShip enemy:enemyShips) {
+            for (int i=0; i<enemyShips.size(); i++) {
                 canvas.drawBitmap(
-                        enemy.getBitmap(),
-                        enemy.getX(),
-                        enemy.getY(),
+                        enemyShips.get(i).getBitmap(),
+                        enemyShips.get(i).getX(),
+                        enemyShips.get(i).getY(),
                         paint);
             }
 
@@ -231,7 +246,7 @@ public class TDView extends SurfaceView implements Runnable {
                 paint.setTextSize(50);
 
                 // top of the screen
-                canvas.drawText(String.format("Fastest: %.2f s", timeTaken/1000.0), 30, 60, paint);
+                canvas.drawText(String.format("Fastest: %.2f s", fastestTime/1000.0), 30, 60, paint);
                 canvas.drawText(String.format("Time: %.2f s", timeTaken/1000.0), screenSize.x/2, 60, paint);
 
                 // bottom of the screen
@@ -243,7 +258,7 @@ public class TDView extends SurfaceView implements Runnable {
                 paint.setTextAlign(Paint.Align.CENTER);
                 canvas.drawText("GAME OVER", screenSize.x / 2, 280, paint);
                 paint.setTextSize(80);
-                canvas.drawText(String.format("Fastest: %.2f s", timeTaken/1000.0), screenSize.x / 2, 380, paint);
+                canvas.drawText(String.format("Fastest: %.2f s", fastestTime/1000.0), screenSize.x / 2, 380, paint);
                 canvas.drawText(String.format("Time: %.2f s", timeTaken/1000.0), screenSize.x/2, 480, paint);
                 paint.setTextSize(120);
                 canvas.drawText("Tap to replay", screenSize.x/2, screenSize.y - 180, paint);
@@ -263,11 +278,11 @@ public class TDView extends SurfaceView implements Runnable {
     public boolean onTouchEvent(MotionEvent motionEvent) {
         switch (motionEvent.getActionMasked()) {
             case MotionEvent.ACTION_UP:
-                // finger on the screen
+                // finger off the screen
                 player.setBoosting(false);
                 break;
             case MotionEvent.ACTION_DOWN:
-                // finger off the screen
+                // finger on the screen
                 player.setBoosting(true);
                 // if the screen was tapped while game over
                 if (gameOver) {

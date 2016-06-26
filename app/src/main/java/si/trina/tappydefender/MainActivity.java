@@ -2,6 +2,7 @@ package si.trina.tappydefender;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 
@@ -19,9 +21,22 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // load fastest time
+        SharedPreferences prefs;
+        prefs = getSharedPreferences("HighScores", MODE_PRIVATE);
+
+        // reference to button
         final Button buttonPlay =
                 (Button)findViewById(R.id.buttonPlay);
+
+        // reference to text view
+        final TextView textFastestTime = (TextView)findViewById(R.id.textHighScore);
+
         buttonPlay.setOnClickListener(this);
+
+        // load fastest time
+        long fastestTime = prefs.getLong("fastestTime", 1000000);
+        textFastestTime.setText(String.format("Fastest: %.2f s", fastestTime/1000.0));
     }
 
     @Override
