@@ -8,4 +8,4 @@ Tap your way home - travel 10km without losing all shiels. Beware of the enemy s
 
 ## Acknowledgements
 
-Made with a litle help from the book Android game programming by example.
+Made with a litle help from the book **Android game programming by example**.
