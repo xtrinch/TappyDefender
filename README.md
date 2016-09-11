@@ -6,4 +6,6 @@ Game for the android operating system.
 
 Tap your way home - travel 10km without losing all shiels. Beware of the enemy ships on your way.
 
+## Acknowledgements
+
 Made with a litle help from the book Android game programming by example.
